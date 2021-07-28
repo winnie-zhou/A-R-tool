@@ -39,7 +39,7 @@ public class SongDataMain {
     	String[] songNames = chartRequest("\"title\":");
     	String[] artists = chartRequest("\"subtitle\":");
     	try {
-//    	ids= reader.getIds(file);
+
     	String[] shazams = new String[200];
 
     	for (int i = 0; i< 200; i++) //change back to 200
@@ -51,8 +51,10 @@ public class SongDataMain {
     	}
  //   	reader.addColumn(file, retFile, shazams, false);
     	////DATABASE:
-    	String file1 = "c:\\Users\\Winnie\\Downloads\\Shazam Song Database.csv"; //
+    	String file1 = "c:\\Users\\Winnie\\Downloads\\Shazam Song Database.csv"; 
     	String file2 = "c:\\Users\\Winnie\\Downloads\\Shazam Song Database1.csv";
+    	String file3 = "c:\\Users\\Winnie\\Downloads\\Shazam Rank Database.csv";
+    	String file4 = "c:\\Users\\Winnie\\Downloads\\Shazam Rank Database1.csv";
  //   	    	
     	OpenCsvReader database = new OpenCsvReader(); 
 		int numSongs = database.findNumRows(file1);
@@ -62,12 +64,12 @@ public class SongDataMain {
 		songIds = database.colToArr(file1, 0); 
 		
 		String[] ranks = new String[numSongs + 50];
-		ranks[0] = "Rank";
+		
 		for (int k = 0; k <numSongs + 50; k++)
 		{
 			ranks[k] = "";
 		}
-
+		
     	int numRows = database.findNumRows(file1); //-1 bc date is on top
     	
     	int numRows1 = database.findNumRows(file1);
@@ -98,6 +100,7 @@ public class SongDataMain {
     	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/YYYY");
     	
     	allShazams[0] = formatter.format(today);
+    	ranks[0] = formatter.format(today);
     	for (int j = 1; j<numRows; j++) { //pulls shazam count for all songs 
 
     		allShazams[j] = synchronousRequest(allSongIds[j]); 
@@ -106,8 +109,8 @@ public class SongDataMain {
     	
     	database.addColumn(file1, file2, allShazams, true);
     	database.copyOver(file2, file1);
-    	database.addColumn(file1, file2, ranks, true);
-    	database.copyOver(file2, file1);
+    	database.addColumn(file3, file4, ranks, true);
+    	database.copyOver(file4, file3);
     	}	
     	catch (FileNotFoundException e) {
     		e.printStackTrace();

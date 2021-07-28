@@ -24,7 +24,7 @@ public class OpenCsvReader {
 
 //        String fileName = "c:\\Users\\Winnie\\Downloads\\CSVDemo.csv";
     	OpenCsvReader reader = new OpenCsvReader();
-    	String fileName = "c:\\Users\\Winnie\\Downloads\\Shazam Song Database.csv";
+    	String fileName = "c:\\Users\\Winnie\\Downloads\\Shazam Count Database.csv";
     	String fileName1 = "c:\\Users\\Winnie\\Downloads\\Shazam Song Database1.csv";
     	String fileName2 = "c:\\Users\\Winnie\\Downloads\\ShazamCount.csv";
     	String file2 = "c:\\Users\\Winnie\\Downloads\\Shazam Top 200 United States Chart 30-05-2021.csv";
@@ -32,14 +32,14 @@ public class OpenCsvReader {
     	String[] arr = {"1", "2,", "3", "5"};
     	String[] arr1 = {"1", "2", "3", "4"};
     	
-    	System.out.println( reader.countCols(file2));
+    //	System.out.println( reader.countCols(file2));
     	
-    	reader.addColumn(file2, file, arr, true);
+//    	reader.addColumn(file2, file, arr, true);
 //    	reader.copyOver(file, file2);
 //    	reader.addColumn(file2, file, arr1, true);
  //   	reader.addRow(fileName, "hi");
  //   	reader.addRow(fileName, "hi");
- //   	reader.addSong(fileName, "HI");
+   	reader.addSong(fileName, "HI");
  //   	reader.addSong(fileName, "HI");
  //   	reader.colToArr(fileName1);
  //       List<String[]> r = readCsvFile(fileName);
@@ -460,7 +460,11 @@ public class OpenCsvReader {
     	String[] lineInArray = new String[findNumRows(fileName)];
          try (CSVReader reader = new CSVReader(new FileReader(fileName))) {
         	 int i = 0;
-        	 String[] fullRow = reader.readNext();                    // and there is a (header) line
+        	 String[] fullRow = reader.readNext();     // and there is a (header) line
+        	 if(fullRow == null)
+        	 {
+        		 return null;
+        	 }
           	   int columnCount = fullRow.length;       // get the column count
         	
         	// int numCols = columnCount;
@@ -493,6 +497,72 @@ public class OpenCsvReader {
     	    }
     	}
     	return index;
+    }
+    
+/*    public String[] yesterdaysSongs(String file, String date, int column) throws IOException, CsvException
+    {
+    	String[] lineInArray = new String[findNumRows(file)];
+    	 
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
+       	 int i = 0;
+       	 String[] fullRow = reader.readNext();
+       	 while(fullRow != null)
+       	 {
+	       	 if(fullRow[0].equals(date))
+	       	 {
+	       		 i++;
+	       	 }
+	       	fullRow = reader.readNext();
+       	 }
+       	String[] songs = new String[i];
+       	String[] fullRow1 = reader.readNext();
+       	 for (int j = 0; j<i; j++)
+       	 {
+	       	if(fullRow1[0].equals(date))
+	      	 {
+	      		 songs[i] = fullRow[column];
+	      		 i++;
+	      		fullRow = reader.readNext();
+	      	 }
+	       	else 
+	       	{
+	       		fullRow = reader.readNext();
+	       	}
+       	 }
+       	 reader.close();
+       	 return songs;
+        }
+    }*/
+    public String[] yesterdaysSongs(String file, String date, int column) throws IOException, CsvException
+    {
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
+       	 int i = 0;
+         String[] fullRow = reader.readNext();
+       	 while(fullRow != null)
+       	 {
+	       	 if(fullRow[0].equals(date))
+	       	 {
+	       		 i++;
+	       	 }
+	       	fullRow = reader.readNext();
+       	 }
+       	 String[] songs = new String[i];
+       	 CSVReader reader1 = new CSVReader(new FileReader(file));
+       	 String[] fullRow1 = reader1.readNext();
+       	 int j = 0;
+       	 while(fullRow1 != null)
+       	 {
+	       	 if(fullRow1[0].equals(date))
+	       	 {       		 
+	       		 songs[j] = fullRow1[column];
+	       		 j++;
+	       	 }
+	       	 
+	       	fullRow1 = reader1.readNext();
+       	 }
+       	 reader.close();
+       	 return songs;
+        }
     }
 	
 }
