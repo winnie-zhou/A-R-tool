@@ -25,24 +25,13 @@ public class SoundCloudDataMain {
     	String file8 = "c:\\Users\\Winnie\\Downloads\\Soundcloud N&H Ranking Database.csv";
     	
     	String file = "c:\\Users\\Winnie\\Downloads\\Testing.csv";
+    	    	
+    	dailyUpdate(file1, file3, file5, file7, true);
     	
- //   	dailyUpdate(file, true, "\"playback_count\":", true);
-    	
-    	dailyUpdate(file1, true, "\"playback_count\":", true);
-    	dailyUpdate(file3, true, "\"likes_count\":", true);
-    	dailyUpdate(file5, true, "\"comment_count\":", true);
-    	dailyUpdate(file7, true, "\"playback_count\":", false);
-    	
-  		dailyUpdate(file2, false, "\"playback_count\":", true);    	
-    	dailyUpdate(file4, false, "\"likes_count\":", true);
-    	dailyUpdate(file6, false, "\"comment_count\":", true);
-    	dailyUpdate(file8, false, "\"playback_count\":", false);
-		
+    	dailyUpdate(file2, file4, file6, file8, false);	
 	}
-	private static void dailyUpdate(String file1, boolean chartType, String metric, boolean notRank) throws InterruptedException, IOException{
-		
-		OpenCsvReader reader = new OpenCsvReader();
-		
+	private static void dailyUpdate(String file1, String file2, String file3, String file4, boolean chartType) throws InterruptedException, IOException{
+				
 		int count = chartCount(chartType);
 		
 		String[] ids = chartRequest("\"kind\":\"track\"", chartType);
@@ -100,34 +89,22 @@ public class SoundCloudDataMain {
 					ranks[search] = Integer.toString(i+1);
 				}
 	    	}
-	    	if (notRank == true)
-	    	{
+	    	System.out.println("oldsongs:" + numOldSongs);
+	    	System.out.println("newsongs:" + numNewSongs);
 		    	for (int k = 0;k < numOldSongs; k++)
 		    	{
-		    		database.addSong(file1, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], metric));
+		    		database.addSong(file1, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"playback_count\":"));
+		    		database.addSong(file2, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"likes_count\":"));
+		    		database.addSong(file3, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"comment_count\":"));
+		    		database.addSong(file4, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + ranks[k]);
 		    	}
 		    	for (int j = 0; j < numNewSongs; j++)
 		    	{
-		    		database.addSong(file1, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], metric));
-		    	}
-	    	}
-	    	else 
-	    	{
-		    	System.out.println("oldsongs:" + numOldSongs);
-		    	System.out.println("newsongs:" + numNewSongs);
-		    	
-		    	
-		    	for (int l = 0; l < numOldSongs; l++)
-		    	{
-		    		System.out.println(ranks[l]);
-		    		database.addSong(file1, formatter.format(today) + "," + oldSongs[l] + "," + oldTitles[l] + "," + oldArtists[l] + "," + ranks[l]);
-		    	}
-		    	for (int m = 0; m < numNewSongs; m++)
-		    	{
-		    		System.out.println(ranks[m]);
-		    		database.addSong(file1, formatter.format(today) + "," + newSongs[m] + "," + newTitles[m] + "," + newArtists[m] + "," + ranks[m]);
-		    	}
-	    	}
+		    		database.addSong(file1, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"playback_count\":"));
+		    		database.addSong(file2, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"likes_count\":"));
+		    		database.addSong(file3, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"comment_count\":"));
+		    		database.addSong(file4, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + ranks[j]);
+		    	}  	
 	    	
     	}	
     	catch (FileNotFoundException e) {
