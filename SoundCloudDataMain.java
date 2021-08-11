@@ -26,7 +26,7 @@ public class SoundCloudDataMain {
     	
     	String file = "c:\\Users\\Winnie\\Downloads\\Testing.csv";
     	    	
-    	dailyUpdate(file1, file3, file5, file7, true);
+ //   	dailyUpdate(file1, file3, file5, file7, true);
     	
     	dailyUpdate(file2, file4, file6, file8, false);	
 	}
@@ -128,7 +128,7 @@ public class SoundCloudDataMain {
         
          //https://api-v2.soundcloud.com/tracks?ids=1080488065&client_id=aVfBEvueQiX0L8YGQTo3mm5vQJhZfseT&%5Bobject%20Object%5D=&app_version=1625669469&app_locale=en
         var request = HttpRequest.newBuilder(
-            URI.create("https://api-v2.soundcloud.com/tracks?client_id=aVfBEvueQiX0L8YGQTo3mm5vQJhZfseT&app_version=1625669469&ids="+id)
+            URI.create("https://api-v2.soundcloud.com/tracks?ids=" + id + "&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&%5Bobject%20Object%5D=&app_version=1628157754&app_locale=en")
         ).build();
 
         // use the client to send the request
@@ -160,7 +160,7 @@ public class SoundCloudDataMain {
     	
         if (chartType == true){
         	var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=p0qXnO6vGPGnUE8mStvEVVelga3zO3sy&limit=100&offset=0&linked_partitioning=1&app_version=1625061987&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens1 = response.body().split(find);
         	if (find.equals("\"kind\":\"track\"")) {
@@ -196,7 +196,7 @@ public class SoundCloudDataMain {
         }
         else{
         	var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=p0qXnO6vGPGnUE8mStvEVVelga3zO3sy&limit=100&offset=0&linked_partitioning=1&app_version=1625061987&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens1 = response.body().split(find);
         	if (find.equals("\"kind\":\"track\"")) {
@@ -236,7 +236,7 @@ public class SoundCloudDataMain {
     	int count = 0;
     	if (chartType == true) {
     		var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=p0qXnO6vGPGnUE8mStvEVVelga3zO3sy&limit=100&offset=0&linked_partitioning=1&app_version=1625061987&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens = response.body().split(",");
         	int len = tokens.length;
@@ -250,7 +250,7 @@ public class SoundCloudDataMain {
     	}
     	else {
     		var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=p0qXnO6vGPGnUE8mStvEVVelga3zO3sy&limit=100&offset=0&linked_partitioning=1&app_version=1625061987&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens = response.body().split(",");
         	int len = tokens.length;
