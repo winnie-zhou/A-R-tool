@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.net.HttpURLConnection;
+import java.net.URL;
 //import com.gargoylesoftware.htmlunit.WebClient;
 
 import java.net.MalformedURLException;
@@ -23,45 +25,20 @@ import com.opencsv.exceptions.CsvException;
 public class GeniusDataMain {
 
 	public static void main(String[] args) throws IOException, InterruptedException{
-	
+		
 		final GeniusDataMain scraper = new GeniusDataMain();
 		
-//		scraper.scrape();
+		sendRequest("7110416", "\"pageviews\":");
 		
-		LocalDate today = LocalDate.now();
+/*		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd");
-    	
-    	String yesterdaysUrl = "https://genius.com/songs?last_greatest_datetime="+formatter.format(yesterday)+"+23";
-    	String yesterdaysDirectory = scraper.getContent(yesterdaysUrl);
-    	final List<String> yesterdaysSongs = scraper.extractText(yesterdaysDirectory);
-    	String firstSong1 = yesterdaysSongs.get(0);
-    	String firstSong = firstSong1.substring(0,firstSong1.length()-2);
-    	System.out.println("first song of yesterday: " + firstSong);
-    	
-/*		String todaysUrl = "https://genius.com/songs?last_greatest_datetime="+formatter.format(today)+"+00";
-		final String htmlContent = scraper.getContent(todaysUrl);
-		//https://genius.com/songs?last_greatest_datetime=2021-07-18+12%3A27%3A10+UTC&last_id=7018963
-        final List<String> extractedText = scraper.extractText(htmlContent);
-        int len = extractedText.size();
+    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd");  
         
-        for (int k = 0; k < len; k++)
-        {
-        	String str = extractedText.get(k);
-        	int strLen = str.length();
-        	String newStr = str.substring(0,strLen-2); //takes off extra "
-        	System.out.println(newStr);
-        	extractedText.set(k, newStr);
-        }    */         
-        
-        List<String> allText = new ArrayList<String>();
- //       allText.addAll(extractedText);
+    	//scraper:
+        List<String> allText = new ArrayList<String>(); //list of all songs on Today's directory
         for(int j=0; j<24; j++)
         {
- //       	int length = allText.size();
- //       	String lastSong = allText.get(length-1);
- //       	System.out.println("last song = " + lastSong);
-        	String nextUrl = "https://genius.com/songs?last_greatest_datetime="+formatter.format(today)+"+" + Integer.toString(j); //todaysUrl + "&last_id=" + lastSong;
+        	String nextUrl = "https://genius.com/songs?last_greatest_datetime="+formatter.format(today)+"+" + Integer.toString(j); 
         	String htmlContent1 = scraper.getContent(nextUrl);
         	List<String> extractedText1 = scraper.extractText(htmlContent1);
         	int len1 = extractedText1.size();
@@ -77,86 +54,82 @@ public class GeniusDataMain {
         	System.out.println("size:" + allText.size());
         }
 		
-
-		String[] ids = chartRequest("\"id\":");
-		String[] titles = chartRequest("\"title\":");
-		String[] artists = chartRequest("\"name\":");
+        //record which songs make it on the top 200 chart
+        
+		String[] topIds = chartRequest("\"id\":");
+//		String[] topTitles = chartRequest("\"title\":");		
+//		String[] topArtists = chartRequest("\"name\":");
 		
-		//record which songs make it on the top 100 chart
 		    	
 		    	try {
 			    	String file1 = "c:\\Users\\Winnie\\Downloads\\Genius Count Database.csv"; 
 			    	String file2 = "c:\\Users\\Winnie\\Downloads\\Genius Ranking Database.csv";
 			    	    	
 			    	OpenCsvReader database = new OpenCsvReader(); 
-					int numSongs = database.findNumRows(file1);
 					
+			    	database.addSong(file1, "test");
+			    	
+			    
 			    	DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd/MM/YYYY");
 			    	
-			    	String[] oldSongs = database.yesterdaysSongs(file2, formatter.format(yesterday), 1); //yesterdays song IDs
-			    	String[] oldTitles = database.yesterdaysSongs(file2, formatter.format(yesterday), 2);
-			    	String[] oldArtists = database.yesterdaysSongs(file2, formatter.format(yesterday), 3);
+			    	List<String> oldSongs = database.yesterdaysSongsList(file2, formatter.format(yesterday), 1); //yesterdays song IDs
+			    	List<String> oldTitles = database.yesterdaysSongsList(file2, formatter.format(yesterday), 2);
+			    	List<String> oldArtists = database.yesterdaysSongsList(file2, formatter.format(yesterday), 3);
 			    	
-			    	int numOldSongs = oldSongs.length;
+			    	int numOldSongs = oldSongs.size();
 			    	System.out.println("old songs:"+ numOldSongs);
-			    	int numNewSongs = 0;
-			    	for (int i=0; i<200; i++){
-			    		int search = database.searchArray(oldSongs, oldSongs.length, ids[i]);
-			    		if (search < 0) {
-			    			numNewSongs++;
-			    		}
+			    	int numNewSongs = allText.size();
+			    	
+			    	
+			    	//NEED TO GET SONG TITLES + ARTISTS OF NEW SONGS
+			    	//should i use API calls (already have ID) or data scraping?
+			    	// "title": "Chandelier",
+			    	// "context": "Sia",
+			    	//create ArrayLists of new titles and new artists, add to the old
+			    	// find number of new songs?
+			    	
+			    	
+			    	ArrayList<String> allTitles = new ArrayList<String>();
+			    	allTitles.addAll(oldTitles);
+			    	ArrayList<String> allArtists = new ArrayList<String>();
+			    	allArtists.addAll(oldArtists);
+			    	
+			    	for (int i = 0; i< numNewSongs; i++)
+			    	{
+			    		String id1 = allText.get(i);
+			    		String title1 = sendRequest(id1, "\"title\":\"");
+			    		String artist1 = sendRequest(id1, "\"context\":\"");
+			    		allTitles.add(title1);
+			    		allArtists.add(artist1);
 			    	}
-			    	System.out.println("new songs:" + numNewSongs);
-			    	int numSongsToday = numOldSongs + numNewSongs;
-			    	String[] ranks = new String[numSongsToday];
-			    	for (int k = 0; k < numSongsToday; k++)
+			    	
+			    	
+			    	ArrayList<String> allSongs = new ArrayList<String>(); //List of ids
+			    	allSongs.addAll(oldSongs);//adds old and new songs
+			    	allSongs.addAll(allText);
+			    	int totalSongCount = allSongs.size();
+			    	
+			    	String[] ranks = new String[totalSongCount];
+			    	for (int k = 0; k < totalSongCount; k++) 
 					{
 						ranks[k] = "";
-					}  	  	
-			    	
-			    	String[] newSongs = new String[numNewSongs];
-			    	String[] newTitles = new String[numNewSongs];
-			    	String[] newArtists = new String[numNewSongs];
-			    	
-			    	int index = 0;
-			    	int len = numOldSongs;
-			    	for (int i=0; i<200; i++){ //Searches for songs in daily top 200 that are not already in database
-			    		System.out.println(len);
-			    		int search = database.searchArray(oldSongs, numOldSongs, ids[i]);
+					} 
+
+			    	for (int i=0; i<200; i++){ //Searches for songs that are in top 200 chart
+			    		int search = allSongs.indexOf(topIds[i]);
 						if (search < 0) { 
-							ranks[len] = Integer.toString(i+1);
-							len++;
-							newSongs[index] = ids[i];
-							newTitles[index] = titles[i];
-							newArtists[index] = artists[i];
-							index++;
-							//database.addSong(file2, ids[i] + "," + songNames[i] + "," + artists[i] + "," + formatter.format(today) + "," + Integer.toString(i+1)); //rank
-							}
-						else {
+						}else {
 							ranks[search] = Integer.toString(i+1);
-							//database.addSong(file2, ids[i] + "," + songNames[i] + "," + artists[i] + "," + formatter.format(today) + "," + Integer.toString(i+1)); //rank
 						}
 			    	}
-			    	for (int k = 0;k < numOldSongs; k++)
+			    	for (int k = 0;k < totalSongCount; k++)
 			    	{
-			    		database.addSong(file1, formatter1.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k]));
+			    		System.out.println(allSongs.get(k));
+			    		database.addSong(file1, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + sendRequest(allSongs.get(k), "\"pageviews\":"));
 			    	}
-			    	for (int j = 0; j < numNewSongs; j++)
+			    	for (int k = 0;k < totalSongCount; k++)
 			    	{
-			    		database.addSong(file1, formatter1.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j]));
-			    	}
-
-			    	System.out.println("oldsongs:" + numOldSongs);
-			    	System.out.println("newsongs:" + numNewSongs);
-			    	for (int l = 0; l < numOldSongs; l++)
-			    	{
-			    		System.out.println(ranks[l]);
-			    		database.addSong(file2, formatter1.format(today) + "," + oldSongs[l] + "," + oldTitles[l] + "," + oldArtists[l] + "," + ranks[l]);
-			    	}
-			    	for (int m = 0; m < numNewSongs; m++)
-			    	{
-			    		System.out.println(ranks[m]);
-			    		database.addSong(file2, formatter1.format(today) + "," + newSongs[m] + "," + newTitles[m] + "," + newArtists[m] + "," + ranks[m]);
+			    		database.addSong(file2, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + ranks[k]);
 			    	}
 			    	
 		    	}	
@@ -168,46 +141,74 @@ public class GeniusDataMain {
 		    	}
 		    	catch(CsvException e) {
 		    		e.printStackTrace();
-		    	}
-		    	
-		    	
+		    	}		    			*/    	
 		    }
+	
+			private static String sendRequest(String id, String toFind)throws IOException, InterruptedException, MalformedURLException{
+		        URL url = new URL("http://api.genius.com/songs/"+ id + "?text_format=html");
+		        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-		    private static String synchronousRequest(String id) throws IOException, InterruptedException {
-		        // create a client
-		        var client = HttpClient.newHttpClient();
-
-		        // create a request
-	/*	        var request = HttpRequest.newBuilder(
-		            URI.create("api.genius.com/annotations/"+ id)
-		        ).build();*/
+		        conn.setRequestProperty("Accept", "application/json");
+		        conn.setRequestProperty("Authorization","Bearer "+ "u4L8mMtVIQqKfGQjcuwkOQbo4vj4ENgQvmeG4ZbD36PE9ribU1xE48SQW3U-DlZv");		     
+		        conn.setRequestProperty("Content-Type","application/json");
+		        conn.setRequestMethod("GET");
 		        
-		        String authToken = "1OvoUEZlQmNoJS2NP_iTJtDyiGZaYvn-RGeBENvgywee0_WnqUn8_3H_P_3IM9SH";
+		        boolean redirect = false;
 		        
-		        String authorizationHeader = "Basic " + authToken;
-		        
-		        var request = HttpRequest.newBuilder()
-		                .uri(URI.create("api.genius.com/annotations/"+ id))
-		                .GET()
-		                .header("Authorization", authorizationHeader)
-		                .header("Content-Type", "application/json")
-		                .build();
+		        int status = conn.getResponseCode();
+		        if (status == 301)
+		        {
+		        	redirect = true;
+		        }
 
-		        // use the client to send the request
-		        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-		        		//new JsonBodyHandler<>(APOD.class)); 
+		        if (redirect) {
+		        	String newUrl = conn.getHeaderField("Location");
+		        	conn = (HttpURLConnection) new URL(newUrl).openConnection();
+		        	conn.setRequestProperty("Accept", "application/json");
+			        conn.setRequestProperty("Authorization","Bearer "+ "u4L8mMtVIQqKfGQjcuwkOQbo4vj4ENgQvmeG4ZbD36PE9ribU1xE48SQW3U-DlZv");			        
+			        conn.setRequestProperty("Content-Type","application/json");
+			        conn.setRequestMethod("GET");
+			        System.out.println("Redirect to URL : " + newUrl);
+		        }
+		        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		        String output;
+		        StringBuffer response = new StringBuffer();
+		        while ((output = in.readLine()) != null) {
+		            response.append(output);
+		        }
 
-		        // the response:
-		      //  System.out.println(response);
-		 //      System.out.println(response.body());        
-		    		String[] tokens = response.body().split("\"");
-
-		    		String str = tokens[6];
-		    		String shazams = str.substring(1, str.length() - 1);
-//		    		System.out.println(shazams);
-		    		return shazams;
-		    
-		    }
+		        in.close();
+		        // printing result from response
+		        String fullResponse = response.toString();
+		        String onlySongResponse = fullResponse.split("\"current_user_metadata\":")[0]; //ignores data from related songs (ex. samples)
+		        System.out.println(fullResponse);
+//		        System.out.println("Response:-" + response.toString());
+		        if (toFind.equals("\"pageviews\":"))
+		        {
+		        	if (onlySongResponse.indexOf("\"pageviews\":") < 0)
+		        	{
+		        		return "";
+		        	}
+		        	else 
+		        	{
+				        String[] strings = onlySongResponse.split("\"pageviews\":");
+				        String str1 = strings[1];
+				        String[] strings1 = str1.split("}");
+						String pageviews = strings1[0];
+						System.out.println(pageviews);
+						return pageviews;
+		        	}
+		        }
+		        else
+		        {
+		        	String[] strings = onlySongResponse.split(toFind);
+			        String str1 = strings[1];
+			        String[] strings1 = str1.split("\"");
+					String pageviews = strings1[0];
+					System.out.println(pageviews);
+					return pageviews;
+		        }
+			}
 		    
 		    private static String[] chartRequest(String find) throws IOException, InterruptedException
 		    {
@@ -316,7 +317,11 @@ public class GeniusDataMain {
 		        		songList[150 + i] = str1;
 		        	}
 		        }
-
+		        for(int k = 0; k<200; k++)
+		        {
+		        	System.out.println(k);
+		        	System.out.println(songList[k]);
+		        }
 		        return songList;
 		    }
 
@@ -333,66 +338,18 @@ public class GeniusDataMain {
 		    private List<String> extractText(String content) {
 		    	
 		    	final List<String> tagValues = new ArrayList<String>();
-		        final Pattern titleRegExp = Pattern.compile("<script>(.*?)</script>", Pattern.DOTALL);//("<head>(.*?)</head>", Pattern.DOTALL);
-		//        final Pattern titleRegExp = Pattern.compile("<head>.*?<title>(.*?)</title>.*?</head>", Pattern.DOTALL);
-		        					//"<head>.*?<title>(.*?)</title>.*?</head>", Pattern.DOTALL);
-		        
-	//	        Pattern regex2 = Pattern.compile("<div id=\"main\">.*?<ul class = \"song_list primary list \">(.*?)</ul>.*?</div>", Pattern.DOTALL);
-		        
-//		        Pattern regex2 = Pattern.compile("<div id=\"main\">(.*?)</div>", Pattern.DOTALL);
-		        
-//		        Pattern regex2 = Pattern.compile("<ul class=\"song_list primary_list \">(.*?)</div>", Pattern.DOTALL);
+		        final Pattern titleRegExp = Pattern.compile("<script>(.*?)</script>", Pattern.DOTALL);
 		        
 		        Pattern regex2 = Pattern.compile("<li data-id=\"(.*?)class=\"\">", Pattern.DOTALL);
 		        
-		        
-//		        Pattern regex1 = Pattern.compile("<li data-id=\"(.*?)class=\">", Pattern.DOTALL);
-		        
-//		        Pattern regex1 = Pattern.compile("<div class=\"main\">(.*)<div class=\"pagination\">", Pattern.DOTALL);
-		        
-//		        Pattern regex1 = Pattern.compile("<body class(.*)</body>", Pattern.DOTALL);
-		        
-		        //Pattern regex1 = Pattern.compile("</ul>(.*)</ul>.*", Pattern.DOTALL);
-		        
-//		        Pattern regex1 = Pattern.compile("<div id=\"main\">.*?<ul class= \"song_list primary list \">(.*?)</ul>.*?</div>", Pattern.DOTALL);
-		         									//<div id="main">
-		        
-		        //<div class="pagination">
-
-	//	        final Matcher matcher = titleRegExp.matcher(content);
-		        
 		        final Matcher matcher = regex2.matcher(content);
 		        while (matcher.find()) {
-		        	//System.out.println(matcher.group(1));
 		            tagValues.add(matcher.group(1));		            
 		        }
 		       
 		        return tagValues;
 		       
-		    }
-		    
-		    private void scrape() throws MalformedURLException{
-		        final String httpsUrl = "https://genius.com/songs?last_greatest_datetime=2021-07-18+12%3A47%3A34+UTC";
-		        try {
-		           final URL url = new URL(httpsUrl);
-		           final HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-		              
-		           System.out.println("****** Content of the URL ********");          
-		           final BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		                  
-		           String input;
-		                  
-		           while ((input = br.readLine()) != null){
-		             System.out.println(input);
-		           }
-		           br.close();
-		        } catch (MalformedURLException e) {
-		           e.printStackTrace();
-		        } catch (IOException e) {
-		           e.printStackTrace();
-		        }
-		     }
-		    
+		    }	    
 
 
 }
