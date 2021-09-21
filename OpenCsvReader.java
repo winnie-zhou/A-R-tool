@@ -132,7 +132,6 @@ public class OpenCsvReader {
     }
     
     public int countCols(String fileName) throws IOException, CsvException{
-//    	BufferedReader br=null;
     	try(CSVReader reader = new CSVReader(new FileReader(fileName))){
     //		br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
     		String[] header = reader.readNext(); // assuming first read
@@ -143,8 +142,6 @@ public class OpenCsvReader {
     		}
     		return columnCount;
     	}
- //   		String line = br.readLine();
- //   		line.split(",");
     	
     }
     
@@ -553,12 +550,60 @@ public class OpenCsvReader {
        	 while(fullRow1 != null)
        	 {
 	       	 if(fullRow1[0].equals(date))
-	       	 {       		 
-	       		 songs[j] = fullRow1[column];
+	       	 {
+	       		 System.out.println(fullRow + "*");
+	       		 String insert = fullRow1[column];
+	       		 if (insert.contains(","))
+	       		 {
+	       			songs[j] = "\"" + fullRow1[column] + "\"";
+	       		 }
+	       		 else
+	       		 {
+	       			 songs[j] = fullRow1[column];
+	       		 }
 	       		 j++;
 	       	 }
 	       	 
 	       	fullRow1 = reader1.readNext();
+       	 }
+       	 reader.close();
+       	 return songs;
+        }
+    }
+    
+    public List<String> yesterdaysSongsList(String file, String date, int column) throws IOException, CsvException
+    {
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
+       	List<String> songs = new ArrayList<String>();
+       	 String[] fullRow = reader.readNext();
+       	 while(fullRow != null)
+       	 {
+	       	 if(fullRow[0].equals(date))
+	       	 {       		 
+	       		 songs.add(fullRow[column]);
+	       	 }	       	 
+	       	fullRow = reader.readNext();
+       	 }
+       	 reader.close();
+       	 return songs;
+        }
+    }
+    
+    public String yesterdaysSongsString(String file, String date, int column) throws IOException, CsvException
+    {
+        try (CSVReader reader = new CSVReader(new FileReader(file))) {
+       	String songs = "";
+       	reader. readNext();
+       	 String[] fullRow = reader.readNext();
+
+       	 while(fullRow != null)
+       	 {
+	       	 if(fullRow[0].equals(date))
+	       	 { 
+	       		// System.out.println(fullRow[column]);
+	       		 songs += fullRow[column] + ",";
+	       	 }	       	 
+	       	fullRow = reader.readNext();
        	 }
        	 reader.close();
        	 return songs;

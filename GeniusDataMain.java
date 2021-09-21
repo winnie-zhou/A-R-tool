@@ -25,113 +25,202 @@ import com.opencsv.exceptions.CsvException;
 public class GeniusDataMain {
 
 	public static void main(String[] args) throws IOException, InterruptedException{
+//		sendRequest("3774339", "\"full_title\":\"");
+		
+		//SCRAPE ARTIST AND TITLE!
 		
 		final GeniusDataMain scraper = new GeniusDataMain();
 		
-		sendRequest("7110416", "\"pageviews\":");
-		
-/*		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
     	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd");  
         
     	//scraper:
         List<String> allText = new ArrayList<String>(); //list of all songs on Today's directory
+        List<String> newTitles = new ArrayList<String>();
+    	List<String> newArtists = new ArrayList<String>();
         for(int j=0; j<24; j++)
         {
         	String nextUrl = "https://genius.com/songs?last_greatest_datetime="+formatter.format(today)+"+" + Integer.toString(j); 
+        	
         	String htmlContent1 = scraper.getContent(nextUrl);
-        	List<String> extractedText1 = scraper.extractText(htmlContent1);
+        	
+        	List<String> newTitlesAndArtists = scraper.extractText(htmlContent1, false);
+        	
+        	int len2 = newTitlesAndArtists.size();
+        	boolean[] invalidSongs = new boolean [len2];
+ //       	System.out.println("number of all songs" + len2);
+        	for (int k = 0; k< len2; k++)
+        	{
+        		invalidSongs[k] = false;
+        	}        		
+        	for (int m = 0; m<len2 ; m++)
+        	{
+        		String fullLine = newTitlesAndArtists.get(m);
+        		
+        		
+        		if (fullLine.contains("Translation")|fullLine.contains("Romanized")|fullLine.contains("Traduzione")|fullLine.contains("Tradution")|fullLine.contains("Traducciones"))
+        		{
+        			invalidSongs[m] = true;
+        			System.out.println(fullLine);
+        			continue;//gets rid of translated songs
+        		}
+        		if (fullLine.contains("&nbsp;"))
+        		{
+        			fullLine = fullLine.replace("&nbsp;", " ");
+        		}
+        		if (fullLine.contains("&amp;"))
+        		{
+        			fullLine = fullLine.replace("&amp;", "&");
+        		}
+        		if (fullLine.contains("&quot;"))
+        		{
+        			fullLine = fullLine.replace("&quot;", "\"");
+        		}
+
+        		String fullLineMinusLyrics = fullLine.split(" Lyrics")[0];
+        		String[] names = fullLineMinusLyrics.split(" – ");
+        		if (names[0].contains(","))
+        		{
+        			newArtists.add("\"" + names[0] + "\"");
+        		}
+        		else {       		
+        			newArtists.add(names[0]);
+        		}
+        		if (names[1].contains(","))
+        		{
+        			newTitles.add("\"" + names[1] + "\"");
+        		}
+        		else
+        		{
+        			newTitles.add(names[1]);
+        		}
+        	}
+        	
+        	List<String> extractedText1 = scraper.extractText(htmlContent1, true);
+        	int len3 = extractedText1.size();
+        	for (int x = 0; x<len3; x++)
+        	{
+        		if (invalidSongs[x] == true)
+        		{
+        			extractedText1.remove(x);
+        			len3--;
+        			continue;
+        		}
+        	}
         	int len1 = extractedText1.size();
+        	System.out.println(len3 + ":" + len1);
         	for (int l = 0; l < len1; l++)
             {
             	String str1 = extractedText1.get(l);
             	int strLen1 = str1.length();
             	String newStr1 = str1.substring(0,strLen1-2); //takes off extra "
-            	System.out.println(newStr1);
             	extractedText1.set(l, newStr1);
             }    
         	allText.addAll(extractedText1);
-        	System.out.println("size:" + allText.size());
+   //     	System.out.println("size:" + allText.size());
+   //     	System.out.println("number of invalid songs(titles):" + newTitles.size());
         }
-		
+        
+        System.out.println("size:" + allText.size());
+    	System.out.println("number of valid songs(titles):" + newTitles.size());
+        
         //record which songs make it on the top 200 chart
         
-		String[] topIds = chartRequest("\"id\":");
-//		String[] topTitles = chartRequest("\"title\":");		
-//		String[] topArtists = chartRequest("\"name\":");
+		String[] topIds = chartRequest(",\"instrumental\":"); //add it to one big string
+		String topSongsStrings = "";
+		for (int y = 0; y<200; y++)
+		{
+			topSongsStrings += y + ")" + topIds[y] + ",";
+		}
+		
+		String[] topTitles = chartRequest("\"title\":");		
+		String[] topArtists = chartRequest("\"name\":");
 		
 		    	
 		    	try {
 			    	String file1 = "c:\\Users\\Winnie\\Downloads\\Genius Count Database.csv"; 
 			    	String file2 = "c:\\Users\\Winnie\\Downloads\\Genius Ranking Database.csv";
 			    	    	
-			    	OpenCsvReader database = new OpenCsvReader(); 
-					
-			    	database.addSong(file1, "test");
-			    	
+			    	OpenCsvReader database = new OpenCsvReader();     	
 			    
 			    	DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd/MM/YYYY");
 			    	
-			    	List<String> oldSongs = database.yesterdaysSongsList(file2, formatter.format(yesterday), 1); //yesterdays song IDs
-			    	List<String> oldTitles = database.yesterdaysSongsList(file2, formatter.format(yesterday), 2);
-			    	List<String> oldArtists = database.yesterdaysSongsList(file2, formatter.format(yesterday), 3);
+			    	
+			    	String oldSongsString = database.yesterdaysSongsString(file1, formatter1.format(yesterday), 1);
+			    	List<String> oldSongs = database.yesterdaysSongsList(file2, formatter1.format(yesterday), 1); //yesterdays song IDs
+			    	List<String> oldTitles = database.yesterdaysSongsList(file2, formatter1.format(yesterday), 2);
+			    	List<String> oldArtists = database.yesterdaysSongsList(file2, formatter1.format(yesterday), 3);
 			    	
 			    	int numOldSongs = oldSongs.size();
-			    	System.out.println("old songs:"+ numOldSongs);
-			    	int numNewSongs = allText.size();
-			    	
-			    	
-			    	//NEED TO GET SONG TITLES + ARTISTS OF NEW SONGS
-			    	//should i use API calls (already have ID) or data scraping?
-			    	// "title": "Chandelier",
-			    	// "context": "Sia",
-			    	//create ArrayLists of new titles and new artists, add to the old
-			    	// find number of new songs?
-			    	
+			    	System.out.println("old songs:"+ numOldSongs);			    	
 			    	
 			    	ArrayList<String> allTitles = new ArrayList<String>();
 			    	allTitles.addAll(oldTitles);
 			    	ArrayList<String> allArtists = new ArrayList<String>();
 			    	allArtists.addAll(oldArtists);
 			    	
-			    	for (int i = 0; i< numNewSongs; i++)
+			    	allTitles.addAll(newTitles);
+			    	allArtists.addAll(newArtists);
+			    	
+/*			    	for (int i = 0; i< numNewSongs; i++)
 			    	{
 			    		String id1 = allText.get(i);
 			    		String title1 = sendRequest(id1, "\"title\":\"");
-			    		String artist1 = sendRequest(id1, "\"context\":\"");
+			    		System.out.println(id1);
+			    		String artist1 = sendRequest(id1, "\"full_title\":\"");
 			    		allTitles.add(title1);
 			    		allArtists.add(artist1);
-			    	}
-			    	
+			    	}*/			    	
 			    	
 			    	ArrayList<String> allSongs = new ArrayList<String>(); //List of ids
 			    	allSongs.addAll(oldSongs);//adds old and new songs
 			    	allSongs.addAll(allText);
 			    	int totalSongCount = allSongs.size();
 			    	
-			    	String[] ranks = new String[totalSongCount];
-			    	for (int k = 0; k < totalSongCount; k++) 
+			    	System.out.println("number of song IDs: " + totalSongCount);
+			    	System.out.println("number of Titles: " + allTitles.size());
+			    	System.out.println("number of Artists: " + allArtists.size());
+			    	
+			    	
+			    	int numNewSongs = 0;
+			    	for (int i=0; i< 200; i++){
+			    		int z = oldSongsString.indexOf(topIds[i]);
+			    		if (z < 0) {
+			    			numNewSongs++;
+			    		}
+			    	}
+			    	
+			    	String[] ranks = new String[totalSongCount + numNewSongs];
+			    	for (int k = 0; k < totalSongCount + numNewSongs; k++) 
 					{
 						ranks[k] = "";
 					} 
-
-			    	for (int i=0; i<200; i++){ //Searches for songs that are in top 200 chart
-			    		int search = allSongs.indexOf(topIds[i]);
-						if (search < 0) { 
-						}else {
-							ranks[search] = Integer.toString(i+1);
-						}
-			    	}
-			    	for (int k = 0;k < totalSongCount; k++)
-			    	{
-			    		System.out.println(allSongs.get(k));
-			    		database.addSong(file1, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + sendRequest(allSongs.get(k), "\"pageviews\":"));
-			    	}
-			    	for (int k = 0;k < totalSongCount; k++)
-			    	{
-			    		database.addSong(file2, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + ranks[k]);
-			    	}
 			    	
+			    	for (int p = 0; p<200; p++) {
+			    		int z = oldSongsString.indexOf(topIds[p]);
+			    		if (z < 0) {
+			    			allSongs.add(topIds[p]);
+			    			allTitles.add(topTitles[p]);
+			    			allArtists.add(topArtists[p]);
+			    			ranks[totalSongCount] = Integer.toString(p+1);
+			    			totalSongCount++;
+			    		}else {
+			    			int position = z/8; //
+			    			ranks[position] = Integer.toString(p+1);
+			    		}
+			    	}
+
+			    	System.out.println(allSongs.size() + " : " + allTitles.size() + " : " + allArtists.size() + " : " + totalSongCount);
+			    	int songCount = allTitles.size();
+			    	
+			    	for (int k = 0;k < songCount; k++)
+			    	{
+			    		System.out.println(allSongs.get(k) + "***"+ allTitles.get(k) + "***" + allArtists.get(k) + "***rank: " + ranks[k]);
+			    		System.out.println(allSongs.get(k) + " pageviews: " + sendRequest(allSongs.get(k), "\"pageviews\":") + " rank: " + ranks[k]);
+			    		database.addSong(file1, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + sendRequest(allSongs.get(k), "\"pageviews\":"));
+//			    		database.addSong(file2, formatter1.format(today) + "," + allSongs.get(k) + "," + allTitles.get(k) + "," + allArtists.get(k) + "," + ranks[k]);
+			    	}			    	
 		    	}	
 		    	catch (FileNotFoundException e) {
 		    		e.printStackTrace();
@@ -141,7 +230,7 @@ public class GeniusDataMain {
 		    	}
 		    	catch(CsvException e) {
 		    		e.printStackTrace();
-		    	}		    			*/    	
+		    	}		    			    	
 		    }
 	
 			private static String sendRequest(String id, String toFind)throws IOException, InterruptedException, MalformedURLException{
@@ -168,7 +257,7 @@ public class GeniusDataMain {
 			        conn.setRequestProperty("Authorization","Bearer "+ "u4L8mMtVIQqKfGQjcuwkOQbo4vj4ENgQvmeG4ZbD36PE9ribU1xE48SQW3U-DlZv");			        
 			        conn.setRequestProperty("Content-Type","application/json");
 			        conn.setRequestMethod("GET");
-			        System.out.println("Redirect to URL : " + newUrl);
+	//		        System.out.println("Redirect to URL : " + newUrl);
 		        }
 		        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		        String output;
@@ -181,7 +270,7 @@ public class GeniusDataMain {
 		        // printing result from response
 		        String fullResponse = response.toString();
 		        String onlySongResponse = fullResponse.split("\"current_user_metadata\":")[0]; //ignores data from related songs (ex. samples)
-		        System.out.println(fullResponse);
+		       // System.out.println(fullResponse);
 //		        System.out.println("Response:-" + response.toString());
 		        if (toFind.equals("\"pageviews\":"))
 		        {
@@ -195,17 +284,33 @@ public class GeniusDataMain {
 				        String str1 = strings[1];
 				        String[] strings1 = str1.split("}");
 						String pageviews = strings1[0];
-						System.out.println(pageviews);
+	//					System.out.println(pageviews);
 						return pageviews;
 		        	}
 		        }
-		        else
+		        else if (toFind.equals("\"full_title\":\""))
 		        {
 		        	String[] strings = onlySongResponse.split(toFind);
+		        	String str1 = strings[1];
+		        	System.out.println(str1);
+		        	String[] strings1 = str1.split("\","); //sometimes titles include quotes ???
+		        	String fullTitle = strings1[0];
+		        	System.out.println(fullTitle);
+		        	String[] strings2 = fullTitle.split("by");
+		        	String pageviews = strings2[1];
+		        	pageviews.trim();
+		        	System.out.println(pageviews);
+		        	return pageviews;
+		        }
+		        else
+		        {
+		        	System.out.println(toFind);
+		        	String[] strings = onlySongResponse.split(toFind);
+		        	System.out.println("******"+strings[0]);
 			        String str1 = strings[1];
 			        String[] strings1 = str1.split("\"");
 					String pageviews = strings1[0];
-					System.out.println(pageviews);
+	//				System.out.println(pageviews);
 					return pageviews;
 		        }
 			}
@@ -243,14 +348,15 @@ public class GeniusDataMain {
 		        
 		        for (int i = 0; i<50; i++)
 		        {
-		        	String str = substrings1[i+1];
-		        	String[] tokens = str.split("\"");
 		        	String str1;
-		        	if (find.equals("\"id\":")){
-		        		String str2 = tokens[0];
-		        		str1 = str2.substring(0, str2.length() - 1);
+		        	if (find.equals(",\"instrumental\":")){
+		        		String string1 = substrings1[i];
+		        		String[] tokens1 = string1.split(":");		        		
+		        		str1 = tokens1[tokens1.length-1];
 		        	}
 		        	else {
+		        		String str = substrings1[i+1];
+			        	String[] tokens = str.split("\"");
 		        		str1 = tokens[1];
 		        	}
 		        	if (str1.contains(",")) {
@@ -262,14 +368,15 @@ public class GeniusDataMain {
 		        }
 		        for (int i = 0; i<50; i++)
 		        {
-		        	String str = substrings2[i+1];
-		        	String[] tokens = str.split("\"");
 		        	String str1;
-		        	if (find.equals("\"id\":")){
-		        		String str2 = tokens[0];
-		        		str1 = str2.substring(0, str2.length() - 1);
+		        	if (find.equals(",\"instrumental\":")){
+		        		String string1 = substrings1[i];
+		        		String[] tokens1 = string1.split(":");		        		
+		        		str1 = tokens1[tokens1.length-1];
 		        	}
 		        	else {
+		        		String str = substrings1[i+1];
+			        	String[] tokens = str.split("\"");
 		        		str1 = tokens[1];
 		        	}
 		        	if (str1.contains(",")) {
@@ -281,14 +388,15 @@ public class GeniusDataMain {
 		        }
 		        for (int i = 0; i<50; i++)
 		        {
-		        	String str = substrings3[i+1];
-		        	String[] tokens = str.split("\"");
 		        	String str1;
-		        	if (find.equals("\"id\":")){
-		        		String str2 = tokens[0];
-		        		str1 = str2.substring(0, str2.length() - 1);
+		        	if (find.equals(",\"instrumental\":")){
+		        		String string1 = substrings1[i];
+		        		String[] tokens1 = string1.split(":");		        		
+		        		str1 = tokens1[tokens1.length-1];
 		        	}
 		        	else {
+		        		String str = substrings1[i+1];
+			        	String[] tokens = str.split("\"");
 		        		str1 = tokens[1];
 		        	}
 		        	if (str1.contains(",")) {
@@ -300,14 +408,15 @@ public class GeniusDataMain {
 		        }
 		        for (int i = 0; i<50; i++)
 		        {
-		        	String str = substrings4[i+1];
-		        	String[] tokens = str.split("\"");
 		        	String str1;
-		        	if (find.equals("\"id\":")){
-		        		String str2 = tokens[0];
-		        		str1 = str2.substring(0, str2.length() - 1);
+		        	if (find.equals(",\"instrumental\":")){
+		        		String string1 = substrings1[i];
+		        		String[] tokens1 = string1.split(":");		        		
+		        		str1 = tokens1[tokens1.length-1];
 		        	}
 		        	else {
+		        		String str = substrings1[i+1];
+			        	String[] tokens = str.split("\"");
 		        		str1 = tokens[1];
 		        	}
 		        	if (str1.contains(",")) {
@@ -316,11 +425,6 @@ public class GeniusDataMain {
 		        	else {
 		        		songList[150 + i] = str1;
 		        	}
-		        }
-		        for(int k = 0; k<200; k++)
-		        {
-		        	System.out.println(k);
-		        	System.out.println(songList[k]);
 		        }
 		        return songList;
 		    }
@@ -335,14 +439,23 @@ public class GeniusDataMain {
 		        return response.body();
 		    }
 		    
-		    private List<String> extractText(String content) {
+		    private List<String> extractText(String content, boolean id) {
 		    	
 		    	final List<String> tagValues = new ArrayList<String>();
 		        final Pattern titleRegExp = Pattern.compile("<script>(.*?)</script>", Pattern.DOTALL);
-		        
-		        Pattern regex2 = Pattern.compile("<li data-id=\"(.*?)class=\"\">", Pattern.DOTALL);
-		        
-		        final Matcher matcher = regex2.matcher(content);
+		        Pattern regex; 
+		        if (id == true)
+		        {
+		        	Pattern regex2 = Pattern.compile("<li data-id=\"(.*?)class=\"\">", Pattern.DOTALL);
+		        	regex = regex2;
+		        }
+		        else
+		        {
+		        	Pattern regex4 = Pattern.compile("song_link\" title=\"(.*?)\">", Pattern.DOTALL);
+		        	regex = regex4;
+		        }
+
+		        final Matcher matcher = regex.matcher(content);
 		        while (matcher.find()) {
 		            tagValues.add(matcher.group(1));		            
 		        }

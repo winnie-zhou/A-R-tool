@@ -33,10 +33,15 @@ public class SoundCloudDataMain {
 	private static void dailyUpdate(String file1, String file2, String file3, String file4, boolean chartType) throws InterruptedException, IOException{
 				
 		int count = chartCount(chartType);
+		System.out.println("chart count:" + count);
 		
 		String[] ids = chartRequest("\"kind\":\"track\"", chartType);
     	String[] songNames = chartRequest("\"title\":", chartType);
     	String[] artists = chartRequest("\"username\":", chartType); //"user_id"
+    	
+    	
+    	String[] isrcCodes = chartRequest("\"isrc\":", chartType);
+    	
     	try {
     	    	
 	    	OpenCsvReader database = new OpenCsvReader(); 
@@ -51,6 +56,7 @@ public class SoundCloudDataMain {
 	    	String[] oldSongs = database.yesterdaysSongs(file1, formatter.format(yesterday), 1); //yesterdays song IDs
 	    	String[] oldTitles = database.yesterdaysSongs(file1, formatter.format(yesterday), 2);
 	    	String[] oldArtists = database.yesterdaysSongs(file1, formatter.format(yesterday), 3);
+	    	String[] oldIsrcs = database.yesterdaysSongs(file1, formatter.format(yesterday), 4);
 	    	
 	    	int numOldSongs = oldSongs.length;
 	    	System.out.println("old songs:"+ numOldSongs);
@@ -61,6 +67,7 @@ public class SoundCloudDataMain {
 	    			numNewSongs++;
 	    		}
 	    	}
+	    	
 	    	System.out.println("new songs:" + numNewSongs);
 	    	int numSongsToday = numOldSongs + numNewSongs;
 	    	String[] ranks = new String[numSongsToday];
@@ -72,6 +79,7 @@ public class SoundCloudDataMain {
 	    	String[] newSongs = new String[numNewSongs];
 	    	String[] newTitles = new String[numNewSongs];
 	    	String[] newArtists = new String[numNewSongs];
+	    	String[] newIsrcs = new String[numNewSongs];
 	    	
 	    	int index = 0;
 	    	int len = numOldSongs;
@@ -83,6 +91,7 @@ public class SoundCloudDataMain {
 					newSongs[index] = ids[i];
 					newTitles[index] = songNames[i];
 					newArtists[index] = artists[i];
+					newIsrcs[index] = isrcCodes[i];
 					index++;
 					}
 				else {
@@ -93,17 +102,19 @@ public class SoundCloudDataMain {
 	    	System.out.println("newsongs:" + numNewSongs);
 		    	for (int k = 0;k < numOldSongs; k++)
 		    	{
-		    		database.addSong(file1, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"playback_count\":"));
-		    		database.addSong(file2, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"likes_count\":"));
-		    		database.addSong(file3, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + synchronousRequest(oldSongs[k], "\"comment_count\":"));
-		    		database.addSong(file4, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + ranks[k]);
+		    		System.out.println(oldIsrcs[k]);
+		    		database.addSong(file1, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + oldIsrcs[k] + "," + synchronousRequest(oldSongs[k], "\"playback_count\":"));// + oldIsrcs[k]));
+		    		database.addSong(file2, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + oldIsrcs[k] + "," + synchronousRequest(oldSongs[k], "\"likes_count\":")); // + oldIsrcs[k]));
+		    		database.addSong(file3, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + oldIsrcs[k] + "," + synchronousRequest(oldSongs[k], "\"comment_count\":")); //+ oldIsrcs[k]));
+		    		database.addSong(file4, formatter.format(today) + "," + oldSongs[k] + "," + oldTitles[k] + "," + oldArtists[k] + "," + oldIsrcs[k] + "," + ranks[k]); // + oldIsrcs[k])
 		    	}
 		    	for (int j = 0; j < numNewSongs; j++)
 		    	{
-		    		database.addSong(file1, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"playback_count\":"));
-		    		database.addSong(file2, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"likes_count\":"));
-		    		database.addSong(file3, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + synchronousRequest(newSongs[j], "\"comment_count\":"));
-		    		database.addSong(file4, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + ranks[j]);
+		    		System.out.println(newIsrcs[j]);
+		    		database.addSong(file1, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + newIsrcs[j] + "," + synchronousRequest(newSongs[j], "\"playback_count\":")); // + newIsrcs[j]));
+		    		database.addSong(file2, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + newIsrcs[j] + "," + synchronousRequest(newSongs[j], "\"likes_count\":")); // + newIsrcs[j]));
+		    		database.addSong(file3, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + newIsrcs[j] + "," + synchronousRequest(newSongs[j], "\"comment_count\":")); // + newIsrcs[j]));
+		    		database.addSong(file4, formatter.format(today) + "," + newSongs[j] + "," + newTitles[j] + "," + newArtists[j] + "," + newIsrcs[j] + "," + ranks[j]); // + newIsrcs[j]);
 		    	}  	
 	    	
     	}	
@@ -128,7 +139,7 @@ public class SoundCloudDataMain {
         
          //https://api-v2.soundcloud.com/tracks?ids=1080488065&client_id=aVfBEvueQiX0L8YGQTo3mm5vQJhZfseT&%5Bobject%20Object%5D=&app_version=1625669469&app_locale=en
         var request = HttpRequest.newBuilder(
-            URI.create("https://api-v2.soundcloud.com/tracks?ids=" + id + "&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&%5Bobject%20Object%5D=&app_version=1628157754&app_locale=en")
+            URI.create("https://api-v2.soundcloud.com/tracks?ids=" + id + "&client_id=B31E7OJEB3BxbSbJBHarCQOhvKZUY09J&%5Bobject%20Object%5D=&app_version=1631196797&app_locale=en")
         ).build();
 
         // use the client to send the request
@@ -138,6 +149,7 @@ public class SoundCloudDataMain {
       //  System.out.println(response.body());
         
         	String[] tokens1 = response.body().split(find);
+        	System.out.println(response.body());
         	System.out.println(id);
         	if (response.body().equals("[]")) {
         		return "";
@@ -156,11 +168,11 @@ public class SoundCloudDataMain {
     	int count = chartCount(chartType);
     	var client = HttpClient.newHttpClient();    	
     	// chartType: true = Top 50, false = New & Hot
-    	String[] songList = new String[101];
+    	String[] songList = new String[count];
     	
         if (chartType == true){
         	var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=B31E7OJEB3BxbSbJBHarCQOhvKZUY09J&limit=100&offset=0&linked_partitioning=1&app_version=1631196797&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens1 = response.body().split(find);
         	if (find.equals("\"kind\":\"track\"")) {
@@ -170,13 +182,34 @@ public class SoundCloudDataMain {
             		int size = tokens2.length;
 	           		String str1 = tokens2[size-1];
 	           		String str2 = str1.substring(5);
-                	if (str1.contains(",")) {
+                	if (str2.contains(",")) {
                 		songList[i] = "\"" + str2 + "\"";
                 	}
                 	else {
                 		songList[i] = str2;
                 	}
-        //        	return songList;
+            	}
+        	}
+        	else if (find.equals("\"isrc\":")){
+        		String[] tokens3 = response.body().split("\"kind\":\"track\"");
+        		for (int i = 0; i<count; i++) {        			
+            		String str = tokens3[i+1];
+            		if (str.contains("isrc"))
+            		{
+            			String[] tokens2 = str.split("\"isrc\":\"");
+            			String str1 = tokens2[1].split("\"")[0];
+                    	if (str1.contains(",")) {
+                    		songList[i] = "\"" + str1 + "\"";
+                    	}
+                    	else {                 		
+                    		songList[i] = str1;
+                    	}
+            		}
+            		else
+            		{
+       //     			System.out.println(i);
+            			songList[i] = "";
+            		}
             	}
         	}
         	else {
@@ -196,7 +229,7 @@ public class SoundCloudDataMain {
         }
         else{
         	var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=B31E7OJEB3BxbSbJBHarCQOhvKZUY09J&limit=100&offset=0&linked_partitioning=1&app_version=1631196797&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens1 = response.body().split(find);
         	if (find.equals("\"kind\":\"track\"")) {
@@ -213,6 +246,28 @@ public class SoundCloudDataMain {
 	                		songList[i] = str2;
 	                }
 	            }
+        	}
+        	else if (find.equals("\"isrc\":")){
+        		String[] tokens3 = response.body().split("artist");
+        		for (int p = 0; p<count; p++) {        			
+            		String str = tokens3[p+1];
+            		if (str.contains("\"isrc\":"))
+            		{
+            			String[] tokens2 = str.split("\"isrc\":\"");
+            			String str1 = tokens2[1].split("\"")[0];           			
+            			System.out.println(str1);
+                    	if (str1.contains(",")) {
+                    		songList[p] = "\"" + str1 + "\"";
+                    	}
+                    	else {
+                    		songList[p] = str1;
+                    	}
+            		}
+            		else
+            		{
+            			songList[p] = "";
+            		}
+            	}
         	}
             else {
             	for(int i = 0; i<count; i++){
@@ -236,13 +291,13 @@ public class SoundCloudDataMain {
     	int count = 0;
     	if (chartType == true) {
     		var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=top&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=B31E7OJEB3BxbSbJBHarCQOhvKZUY09J&limit=100&offset=0&linked_partitioning=1&app_version=1631196797&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens = response.body().split(",");
         	int len = tokens.length;
         	for (int i = 0 ; i < len; i++)
         	{
-        		if (tokens[i].equals("\"kind\":\"track\""))
+        		if (tokens[i].equals("\"kind\":\"track\"")) //different with "artists"??
         		{
         			count++;
         		}
@@ -250,7 +305,7 @@ public class SoundCloudDataMain {
     	}
     	else {
     		var request = HttpRequest.newBuilder( URI.create
-        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=atcX6KFaz2y3iq7fJayIK779Hr4oGArb&limit=20&offset=0&linked_partitioning=1&app_version=1628157754&app_locale=en")).build();
+        			("https://api-v2.soundcloud.com/charts?kind=trending&genre=soundcloud%3Agenres%3Aall-music&region=soundcloud%3Aregions%3AUS&high_tier_only=false&client_id=B31E7OJEB3BxbSbJBHarCQOhvKZUY09J&limit=100&offset=0&linked_partitioning=1&app_version=1631196797&app_locale=en")).build();
         	HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         	String[] tokens = response.body().split(",");
         	int len = tokens.length;

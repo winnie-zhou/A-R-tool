@@ -40,6 +40,7 @@ public class ShazamDataMain {
 	    	    	
 	    	OpenCsvReader database = new OpenCsvReader(); 
 			int numSongs = database.findNumRows(file1);
+			int count = chartCount();
 			
 			LocalDate today = LocalDate.now();
 			LocalDate yesterday = today.minusDays(1);
@@ -53,7 +54,7 @@ public class ShazamDataMain {
 	    	int numOldSongs = oldSongs.length;
 	    	System.out.println("old songs:"+ numOldSongs);
 	    	int numNewSongs = 0;
-	    	for (int i=0; i<200; i++){
+	    	for (int i=0; i<count; i++){
 	    		int search = database.searchArray(oldSongs, oldSongs.length, ids[i]);
 	    		if (search < 0) {
 	    			numNewSongs++;
@@ -73,7 +74,7 @@ public class ShazamDataMain {
 	    	
 	    	int index = 0;
 	    	int len = numOldSongs;
-	    	for (int i=0; i<200; i++){ //Searches for songs in daily top 200 that are not already in database
+	    	for (int i=0; i<count; i++){ //Searches for songs in daily top 200 that are not already in database
 	    		System.out.println(len);
 	    		int search = database.searchArray(oldSongs, numOldSongs, ids[i]);
 				if (search < 0) { 
@@ -100,7 +101,7 @@ public class ShazamDataMain {
 	    	}
 	    	 
 	    	
-/*	    	for (int l = 0; l < numOldSongs; l++)
+	    	for (int l = 0; l < numOldSongs; l++)
 	    	{
 	    		System.out.println(ranks[l]);
 	    		database.addSong(file2, formatter.format(today) + "," + oldSongs[l] + "," + oldTitles[l] + "," + oldArtists[l] + "," + ranks[l]);
@@ -109,7 +110,7 @@ public class ShazamDataMain {
 	    	{
 	    		System.out.println(ranks[m]);
 	    		database.addSong(file2, formatter.format(today) + "," + newSongs[m] + "," + newTitles[m] + "," + newArtists[m] + "," + ranks[m]);
-	    	}*/
+	    	}
 	    	
     	}	
     	catch (FileNotFoundException e) {
@@ -150,6 +151,20 @@ public class ShazamDataMain {
     
     }
     
+    private static int chartCount() throws IOException, InterruptedException
+    {
+    	var client = HttpClient.newHttpClient();
+
+        // create a request
+        var request = HttpRequest.newBuilder(
+            URI.create("https://www.shazam.com/shazam/v3/en-US/US/web/-/tracks/ip-country-chart-US?pageSize=200&startFrom=0")
+        ).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        String[] tokens1 = response.body().split("\"key\":");
+        return tokens1.length - 1;
+    }
+    
     private static String[] chartRequest(String find) throws IOException, InterruptedException
     {
     	var client = HttpClient.newHttpClient();
@@ -161,9 +176,10 @@ public class ShazamDataMain {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         
         String[] tokens1 = response.body().split(find);
-        String[] songList = new String[200];
+        int count = chartCount();
+        String[] songList = new String[count];
         
-        for (int i = 0; i<200; i++)
+        for (int i = 0; i<count; i++)
         {
         	String str = tokens1[i+1];
         	String[] tokens2 = str.split("\"");
